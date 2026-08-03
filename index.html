@@ -507,35 +507,50 @@ async function pttStart(e) {
     return;
   }
   pressing = true;
-  vib(40); // pulso curto ao pressionar
+  vib(40);
 
+  // Obtém o stream — pode demorar um momento no primeiro uso
+  let stream;
   try {
-    activeStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    audioContext = new AudioContext();
-    analyser = audioContext.createAnalyser();
-    analyser.fftSize = 2048;
-    sourceNode = audioContext.createMediaStreamSource(activeStream);
-    sourceNode.connect(analyser);
-
-    chunks = [];
-    peakRms = 0;
-    mediaRecorder = new MediaRecorder(activeStream, getRecorderOptions());
-    mediaRecorder.ondataavailable = ev => { if (ev.data.size > 0) chunks.push(ev.data); };
-    mediaRecorder.onstop = handleStop;
-    mediaRecorder.start(100);
-
-    isRecording = true;
-    setUI('recording');
-    drawWave();
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
   } catch(err) {
     pressing = false;
+    setUI('idle');
     alert('Sem acesso ao microfone:\n' + err.message);
+    return;
   }
+
+  // Race condition: botão solto antes do getUserMedia terminar → descarta
+  if (!pressing) {
+    stream.getTracks().forEach(t => t.stop());
+    setUI('idle');
+    return;
+  }
+
+  activeStream = stream;
+  audioContext = new AudioContext();
+  analyser = audioContext.createAnalyser();
+  analyser.fftSize = 2048;
+  sourceNode = audioContext.createMediaStreamSource(activeStream);
+  sourceNode.connect(analyser);
+
+  chunks = [];
+  peakRms = 0;
+  mediaRecorder = new MediaRecorder(activeStream, getRecorderOptions());
+  mediaRecorder.ondataavailable = ev => { if (ev.data.size > 0) chunks.push(ev.data); };
+  mediaRecorder.onstop = handleStop;
+  mediaRecorder.start(100);
+
+  isRecording = true;
+  setUI('recording');
+  drawWave();
 }
 
 function pttEnd(e) {
-  if (!pressing || !isRecording) return;
+  if (!pressing) return;
   pressing = false;
+  // Se o await ainda não terminou, o check dentro do pttStart vai descartar o stream
+  if (!isRecording) return;
   isRecording = false;
   if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
   if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
