@@ -399,6 +399,7 @@ let isRecording   = false;
 let entryIndex    = 0;
 let animFrame     = null;
 let pressing      = false;
+let peakRms       = 0;
 
 const STORAGE_KEY    = 'tf_entries';
 const SETTINGS_KEY   = 'tf_settings';
@@ -409,6 +410,15 @@ const HALLUCINATIONS = [
   /^(ok|okay|certo|sim|não)[\s!?.]*$/i,
   /^(hmm+|ahh*|uhh*|ãh*)[\s!?.]*$/i,
   /^\.*$/, /^\[.*\]$/, /^(thank you|thanks|bye)[\s!?.]*$/i,
+  /https?:\/\//i,
+  /www\./i,
+  /\.(com|pt|org|net|br)\b/i,
+  /acesse\s+o\s+(nosso|meu|seu)\s+site/i,
+  /visite\s+(nosso|o)\s+site/i,
+  /para\s+saber\s+mais[\s!.]*$/i,
+  /inscreva.se/i,
+  /legendas?\s+(por|feitas?\s+por)/i,
+  /traduz?i[dç]o\s+por/i,
 ];
 
 // ── Vibration ───────────────────────────────────────────────────────────────
@@ -469,6 +479,11 @@ function drawWave() {
   canvas.height = H;
   const buf = new Uint8Array(analyser.frequencyBinCount);
   analyser.getByteTimeDomainData(buf);
+  // rastreia pico de volume para rejeitar gravações silenciosas
+  let rmsSum = 0;
+  for (let i = 0; i < buf.length; i++) { const v = (buf[i]/128)-1; rmsSum += v*v; }
+  const rms = Math.sqrt(rmsSum / buf.length);
+  if (rms > peakRms) peakRms = rms;
   ctx2d.clearRect(0, 0, W, H);
   ctx2d.strokeStyle = isRecording ? '#e05c5c' : '#3d4160';
   ctx2d.lineWidth = 1.5;
@@ -503,6 +518,7 @@ async function pttStart(e) {
     sourceNode.connect(analyser);
 
     chunks = [];
+    peakRms = 0;
     mediaRecorder = new MediaRecorder(activeStream, getRecorderOptions());
     mediaRecorder.ondataavailable = ev => { if (ev.data.size > 0) chunks.push(ev.data); };
     mediaRecorder.onstop = handleStop;
@@ -543,9 +559,12 @@ async function handleStop() {
 
   if (chunks.length === 0) { setUI('idle'); return; }
   const blob = new Blob(chunks, { type: chunks[0]?.type || 'audio/webm' });
+  const capturedPeak = peakRms;
   chunks = [];
+  peakRms = 0;
 
-  if (blob.size < 3000) { setUI('idle'); return; }
+  // descarta se silêncio (sem voz detectada) ou blob muito pequeno
+  if (blob.size < 3000 || capturedPeak < 0.015) { setUI('idle'); return; }
 
   const idx = ++entryIndex;
   addProcessingEntry(idx);
