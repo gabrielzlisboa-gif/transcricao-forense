@@ -4,331 +4,159 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Transcrição Forense</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f1117">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="TransForense">
 <link rel="apple-touch-icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:#0f1117; --surface:#1a1d26; --surface2:#222533;
+  --border:#2e3145; --border-strong:#3d4160;
+  --text:#e8eaf0; --text-sec:#8b90a8; --text-muted:#555a72;
+  --accent:#00c9a7; --accent-dim:rgba(0,201,167,.12); --accent-border:rgba(0,201,167,.35);
+  --red:#e05c5c; --red-dim:rgba(224,92,92,.15); --red-border:rgba(224,92,92,.45);
+  --blue:#5b8dee; --blue-dim:rgba(91,141,238,.12); --blue-border:rgba(91,141,238,.3);
+  --radius:8px; --mono:'JetBrains Mono',monospace; --sans:'Inter',sans-serif;
+}
+body {
+  font-family:var(--sans); background:var(--bg); color:var(--text);
+  min-height:100vh; display:flex; flex-direction:column;
+  max-width:780px; margin:0 auto; padding:0 0 40px;
+  -webkit-user-select:none; user-select:none;
+}
+header {
+  padding:14px 16px 12px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between;
+  gap:10px; flex-wrap:wrap;
+}
+.header-left { display:flex; align-items:center; gap:8px; }
+.app-title { font-size:12px; font-weight:500; letter-spacing:.06em; text-transform:uppercase; }
+.badge { font-size:10px; padding:2px 6px; border-radius:4px; background:var(--accent-dim); color:var(--accent); font-weight:500; border:1px solid var(--accent-border); }
+.api-row { display:flex; align-items:center; gap:6px; }
+.api-label { font-size:11px; color:var(--text-muted); white-space:nowrap; }
+.api-input {
+  font-family:var(--mono); font-size:12px; height:30px; width:180px;
+  padding:0 10px; border-radius:var(--radius); border:1px solid var(--border-strong);
+  background:var(--surface); color:var(--text); outline:none;
+  -webkit-user-select:text; user-select:text;
+}
+.api-input:focus { border-color:var(--accent); }
+.context-section {
+  padding:8px 16px; border-bottom:1px solid var(--border);
+  display:flex; gap:8px; align-items:center;
+}
+.context-label { font-size:11px; color:var(--text-muted); white-space:nowrap; }
+.context-input {
+  font-family:var(--sans); font-size:12px; flex:1; height:32px;
+  padding:0 10px; border-radius:var(--radius); border:1px solid var(--border);
+  background:var(--surface); color:var(--text); outline:none;
+  -webkit-user-select:text; user-select:text;
+}
+.context-input:focus { border-color:var(--accent); }
 
-  :root {
-    --bg: #0f1117;
-    --surface: #1a1d26;
-    --surface2: #222533;
-    --border: #2e3145;
-    --border-strong: #3d4160;
-    --text: #e8eaf0;
-    --text-sec: #8b90a8;
-    --text-muted: #555a72;
-    --accent: #00c9a7;
-    --accent-dim: rgba(0,201,167,0.12);
-    --accent-border: rgba(0,201,167,0.35);
-    --red: #e05c5c;
-    --red-dim: rgba(224,92,92,0.15);
-    --red-border: rgba(224,92,92,0.45);
-    --blue: #5b8dee;
-    --blue-dim: rgba(91,141,238,0.12);
-    --blue-border: rgba(91,141,238,0.3);
-    --radius: 8px;
-    --mono: 'JetBrains Mono', monospace;
-    --sans: 'Inter', sans-serif;
-  }
+/* INIT BUTTON */
+.init-section {
+  padding:20px 16px; border-bottom:1px solid var(--border);
+  display:flex; flex-direction:column; align-items:center; gap:12px;
+}
+.btn-init {
+  padding:12px 32px; border-radius:var(--radius);
+  border:1px solid var(--accent-border); background:var(--accent-dim);
+  color:var(--accent); font-family:var(--sans); font-size:14px; font-weight:500;
+  cursor:pointer; transition:background .15s;
+}
+.btn-init:hover { background:rgba(0,201,167,.2); }
+.init-hint { font-size:12px; color:var(--text-muted); text-align:center; line-height:1.6; }
 
-  body {
-    font-family: var(--sans);
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    max-width: 780px;
-    margin: 0 auto;
-    padding: 0 0 40px;
-    -webkit-user-select: none;
-    user-select: none;
-  }
+/* PTT SECTION */
+.ptt-section {
+  padding:20px 16px; border-bottom:1px solid var(--border);
+  display:flex; flex-direction:column; align-items:center; gap:14px;
+}
+.wave-wrap { width:100%; max-width:400px; }
+canvas {
+  width:100%; height:28px; display:block;
+  border-radius:4px; background:var(--surface); border:1px solid var(--border);
+}
+.ptt-btn {
+  width:120px; height:120px; border-radius:50%;
+  border:2px solid var(--border-strong); background:var(--surface2);
+  color:var(--text-sec); font-family:var(--sans); font-size:13px; font-weight:500;
+  cursor:pointer; display:flex; flex-direction:column; align-items:center;
+  justify-content:center; gap:8px;
+  transition:background .1s, border-color .1s, transform .1s, box-shadow .1s;
+  touch-action:none; -webkit-tap-highlight-color:transparent; outline:none;
+  -webkit-user-select:none; user-select:none;
+}
+.ptt-btn.recording {
+  background:var(--red-dim); border-color:var(--red); color:var(--red);
+  transform:scale(.95); box-shadow:0 0 0 8px rgba(224,92,92,.12);
+}
+.ptt-btn.processing {
+  background:var(--blue-dim); border-color:var(--blue); color:var(--blue);
+}
+.ptt-btn:disabled { opacity:.4; cursor:not-allowed; }
+.ptt-icon { font-size:32px; line-height:1; }
+.ptt-label { font-size:11px; letter-spacing:.04em; text-transform:uppercase; }
+.ptt-hint { font-size:11px; color:var(--text-muted); text-align:center; line-height:1.6; }
+.status-pill {
+  font-size:11px; padding:4px 14px; border-radius:20px;
+  background:var(--surface); color:var(--text-muted); border:1px solid var(--border);
+  white-space:nowrap; transition:all .15s;
+}
+.status-pill.recording { color:var(--red); border-color:var(--red-border); background:var(--red-dim); }
+.status-pill.processing { color:var(--blue); border-color:var(--blue-border); background:var(--blue-dim); }
+.status-pill.ready { color:var(--accent); border-color:var(--accent-border); background:var(--accent-dim); }
 
-  header {
-    padding: 14px 16px 12px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
+/* TRANSCRIPT */
+.transcript-area {
+  flex:1; padding:14px 16px;
+  display:flex; flex-direction:column; gap:8px;
+  min-height:200px; overflow-y:auto;
+}
+.empty-msg { color:var(--text-muted); font-size:13px; text-align:center; margin:32px auto; line-height:1.8; }
+.entry {
+  display:flex; gap:8px; align-items:flex-start;
+  padding:10px 12px; border-radius:var(--radius);
+  background:var(--surface); border:1px solid var(--border);
+  animation:fadein .2s ease;
+}
+@keyframes fadein { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
+.entry.processing { border-color:var(--blue-border); background:var(--blue-dim); }
+.entry-num { font-family:var(--mono); font-size:11px; color:var(--text-muted); padding-top:3px; min-width:18px; user-select:none; }
+.entry-text {
+  font-family:var(--mono); font-size:13px; color:var(--text);
+  line-height:1.65; flex:1; background:transparent; border:none;
+  outline:none; resize:none; width:100%;
+  -webkit-user-select:text; user-select:text;
+}
+.entry.processing .entry-text { color:var(--blue); font-style:italic; }
+.entry-del {
+  background:none; border:none; color:var(--text-muted);
+  cursor:pointer; font-size:15px; padding:2px 4px; line-height:1;
+  opacity:0; transition:opacity .15s;
+}
+.entry:hover .entry-del, .entry:focus-within .entry-del { opacity:1; }
+.entry-del:hover { color:var(--red); }
 
-  .header-left {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .app-title {
-    font-size: 12px;
-    font-weight: 500;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-  }
-
-  .badge {
-    font-size: 10px;
-    padding: 2px 6px;
-    border-radius: 4px;
-    background: var(--accent-dim);
-    color: var(--accent);
-    font-weight: 500;
-    border: 1px solid var(--accent-border);
-  }
-
-  .api-row {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .api-label { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
-
-  .api-input {
-    font-family: var(--mono);
-    font-size: 12px;
-    height: 30px;
-    width: 180px;
-    padding: 0 10px;
-    border-radius: var(--radius);
-    border: 1px solid var(--border-strong);
-    background: var(--surface);
-    color: var(--text);
-    outline: none;
-    -webkit-user-select: text;
-    user-select: text;
-  }
-
-  .api-input:focus { border-color: var(--accent); }
-
-  .context-section {
-    padding: 8px 16px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    gap: 8px;
-    align-items: center;
-  }
-
-  .context-label { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
-
-  .context-input {
-    font-family: var(--sans);
-    font-size: 12px;
-    flex: 1;
-    height: 32px;
-    padding: 0 10px;
-    border-radius: var(--radius);
-    border: 1px solid var(--border);
-    background: var(--surface);
-    color: var(--text);
-    outline: none;
-    -webkit-user-select: text;
-    user-select: text;
-  }
-
-  .context-input:focus { border-color: var(--accent); }
-
-  /* PTT AREA */
-  .ptt-section {
-    padding: 20px 16px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 14px;
-  }
-
-  .ptt-btn {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    border: 2px solid var(--border-strong);
-    background: var(--surface2);
-    color: var(--text-sec);
-    font-family: var(--sans);
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: background 0.12s, border-color 0.12s, transform 0.1s, box-shadow 0.12s;
-    touch-action: none;
-    -webkit-tap-highlight-color: transparent;
-    outline: none;
-  }
-
-  .ptt-btn:active, .ptt-btn.pressing {
-    background: var(--red-dim);
-    border-color: var(--red);
-    color: var(--red);
-    transform: scale(0.95);
-    box-shadow: 0 0 0 8px rgba(224,92,92,0.12);
-  }
-
-  .ptt-btn.processing {
-    background: var(--blue-dim);
-    border-color: var(--blue);
-    color: var(--blue);
-  }
-
-  .ptt-icon { font-size: 32px; line-height: 1; }
-
-  .ptt-label { font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; }
-
-  .ptt-hint {
-    font-size: 11px;
-    color: var(--text-muted);
-    text-align: center;
-    line-height: 1.6;
-  }
-
-  .status-pill {
-    font-size: 11px;
-    padding: 4px 14px;
-    border-radius: 20px;
-    background: var(--surface);
-    color: var(--text-muted);
-    border: 1px solid var(--border);
-    white-space: nowrap;
-    transition: all 0.15s;
-  }
-
-  .status-pill.recording { color: var(--red); border-color: var(--red-border); background: var(--red-dim); }
-  .status-pill.processing { color: var(--blue); border-color: var(--blue-border); background: var(--blue-dim); }
-
-  /* waveform */
-  .wave-wrap {
-    width: 100%;
-    max-width: 400px;
-  }
-
-  canvas {
-    width: 100%;
-    height: 28px;
-    display: block;
-    border-radius: 4px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-  }
-
-  /* TRANSCRIPT */
-  .transcript-area {
-    flex: 1;
-    padding: 14px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    min-height: 200px;
-    overflow-y: auto;
-  }
-
-  .empty-msg {
-    color: var(--text-muted);
-    font-size: 13px;
-    text-align: center;
-    margin: 32px auto;
-    line-height: 1.8;
-  }
-
-  .entry {
-    display: flex;
-    gap: 8px;
-    align-items: flex-start;
-    padding: 10px 12px;
-    border-radius: var(--radius);
-    background: var(--surface);
-    border: 1px solid var(--border);
-    animation: fadein 0.2s ease;
-  }
-
-  @keyframes fadein { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
-
-  .entry.processing {
-    border-color: var(--blue-border);
-    background: var(--blue-dim);
-  }
-
-  .entry-num {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--text-muted);
-    padding-top: 3px;
-    min-width: 18px;
-    user-select: none;
-  }
-
-  .entry-text {
-    font-family: var(--mono);
-    font-size: 13px;
-    color: var(--text);
-    line-height: 1.65;
-    flex: 1;
-    background: transparent;
-    border: none;
-    outline: none;
-    resize: none;
-    width: 100%;
-    -webkit-user-select: text;
-    user-select: text;
-  }
-
-  .entry.processing .entry-text { color: var(--blue); font-style: italic; }
-
-  .entry-del {
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    cursor: pointer;
-    font-size: 15px;
-    padding: 2px 4px;
-    line-height: 1;
-    opacity: 0;
-    transition: opacity 0.15s;
-  }
-
-  .entry:hover .entry-del, .entry:focus-within .entry-del { opacity: 1; }
-  .entry-del:hover { color: var(--red); }
-
-  /* FOOTER */
-  footer {
-    padding: 10px 16px;
-    border-top: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  .footer-left { display: flex; gap: 6px; flex-wrap: wrap; }
-
-  .btn-sm {
-    font-size: 12px;
-    padding: 6px 12px;
-    border-radius: var(--radius);
-    border: 1px solid var(--border-strong);
-    background: var(--surface2);
-    color: var(--text-sec);
-    cursor: pointer;
-    font-family: var(--sans);
-    white-space: nowrap;
-  }
-
-  .btn-sm:hover { background: var(--surface); color: var(--text); }
-  .btn-sm.danger:hover { color: var(--red); border-color: var(--red-border); }
-
-  .count { font-size: 11px; color: var(--text-muted); }
+footer {
+  padding:10px 16px; border-top:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between;
+  flex-wrap:wrap; gap:8px;
+}
+.footer-left { display:flex; gap:6px; flex-wrap:wrap; }
+.btn-sm {
+  font-size:12px; padding:6px 12px; border-radius:var(--radius);
+  border:1px solid var(--border-strong); background:var(--surface2);
+  color:var(--text-sec); cursor:pointer; font-family:var(--sans); white-space:nowrap;
+}
+.btn-sm:hover { background:var(--surface); color:var(--text); }
+.btn-sm.danger:hover { color:var(--red); border-color:var(--red-border); }
+.count { font-size:11px; color:var(--text-muted); }
 </style>
 </head>
 <body>
@@ -337,12 +165,11 @@
   <div class="header-left">
     <span style="font-size:17px">🩺</span>
     <span class="app-title">Transcrição Forense</span>
-    <span class="badge">v2</span>
+    <span class="badge">v3</span>
   </div>
   <div class="api-row">
     <span class="api-label">Groq key</span>
-    <input type="password" class="api-input" id="apiKey" placeholder="gsk_..." autocomplete="off"
-      oninput="saveSettings()">
+    <input type="password" class="api-input" id="apiKey" placeholder="gsk_..." autocomplete="off" oninput="saveSettings()">
   </div>
 </header>
 
@@ -353,27 +180,29 @@
     oninput="saveSettings()">
 </div>
 
-<div class="ptt-section">
+<!-- Passo 1: inicializar microfone (necessário no iOS) -->
+<div class="init-section" id="initSection">
+  <button class="btn-init" id="btnInit" onclick="initMic()">🎙️ Ativar microfone</button>
+  <span class="init-hint">Toque uma vez para liberar o microfone.<br>Necessário pelo iOS.</span>
+</div>
+
+<!-- Passo 2: PTT (aparece após init) -->
+<div class="ptt-section" id="pttSection" style="display:none">
   <div class="wave-wrap">
     <canvas id="waveCanvas"></canvas>
   </div>
-
-  <button class="ptt-btn" id="pttBtn"
-    onmousedown="pttStart(event)" onmouseup="pttEnd(event)" onmouseleave="pttEnd(event)"
-    ontouchstart="pttStart(event)" ontouchend="pttEnd(event)" ontouchcancel="pttEnd(event)">
+  <button class="ptt-btn" id="pttBtn" disabled>
     <span class="ptt-icon" id="pttIcon">🎙️</span>
-    <span class="ptt-label" id="pttLabel">Segurar</span>
+    <span class="ptt-label" id="pttLabel">aguarde</span>
   </button>
-
-  <span class="status-pill" id="statusPill">aguardando</span>
-
+  <span class="status-pill" id="statusPill">inicializando...</span>
   <span class="ptt-hint">Mantenha pressionado enquanto fala.<br>Solte para transcrever.</span>
 </div>
 
 <div class="transcript-area" id="transcriptArea">
   <div class="empty-msg" id="emptyMsg">
     🎙️<br><br>
-    Cole a chave Groq, pressione e segure o botão, fale.<br>
+    Ative o microfone, pressione e segure o botão, fale.<br>
     O texto aparece ao soltar.
   </div>
 </div>
@@ -388,21 +217,10 @@
 </footer>
 
 <script>
-// ── State ──────────────────────────────────────────────────────────────────
-let mediaRecorder = null;
-let audioContext  = null;
-let analyser      = null;
-let sourceNode    = null;
-let activeStream  = null;
-let chunks        = [];
-let isRecording   = false;
-let entryIndex    = 0;
-let animFrame     = null;
-let pressing      = false;
-let peakRms       = 0;
-
-const STORAGE_KEY    = 'tf_entries';
-const SETTINGS_KEY   = 'tf_settings';
+// ── Constantes ───────────────────────────────────────────────────────────────
+const STORAGE_KEY  = 'tf_entries';
+const SETTINGS_KEY = 'tf_settings';
+const MIN_PEAK_RMS = 0.015; // abaixo disso = silêncio, descarta
 const HALLUCINATIONS = [
   /^e\s*a[ií][\s!?.]*$/i,
   /^(obrigado|obrigada)[\s!?.]*$/i,
@@ -410,9 +228,7 @@ const HALLUCINATIONS = [
   /^(ok|okay|certo|sim|não)[\s!?.]*$/i,
   /^(hmm+|ahh*|uhh*|ãh*)[\s!?.]*$/i,
   /^\.*$/, /^\[.*\]$/, /^(thank you|thanks|bye)[\s!?.]*$/i,
-  /https?:\/\//i,
-  /www\./i,
-  /\.(com|pt|org|net|br)\b/i,
+  /https?:\/\//i, /www\./i, /\.(com|pt|org|net|br)\b/i,
   /acesse\s+o\s+(nosso|meu|seu)\s+site/i,
   /visite\s+(nosso|o)\s+site/i,
   /para\s+saber\s+mais[\s!.]*$/i,
@@ -421,53 +237,20 @@ const HALLUCINATIONS = [
   /traduz?i[dç]o\s+por/i,
 ];
 
-// ── Vibration ───────────────────────────────────────────────────────────────
-function vib(pattern) {
-  if (navigator.vibrate) navigator.vibrate(pattern);
-}
+// ── Estado ───────────────────────────────────────────────────────────────────
+let activeStream   = null;
+let audioContext   = null;
+let analyser       = null;
+let mediaRecorder  = null;
+let chunks         = [];
+let isRecording    = false;
+let pressing       = false;
+let peakRms        = 0;
+let entryIndex     = 0;
+let animFrame      = null;
+let micReady       = false;
 
-// ── Settings persistence ────────────────────────────────────────────────────
-function saveSettings() {
-  try {
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify({
-      apiKey: document.getElementById('apiKey').value,
-      context: document.getElementById('contextInput').value,
-    }));
-  } catch(e) {}
-}
-
-function loadSettings() {
-  try {
-    const s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
-    if (s.apiKey)  document.getElementById('apiKey').value = s.apiKey;
-    if (s.context) document.getElementById('contextInput').value = s.context;
-  } catch(e) {}
-}
-
-// ── Entry persistence ───────────────────────────────────────────────────────
-function saveEntries() {
-  try {
-    const entries = [...document.querySelectorAll('.entry:not(.processing) textarea')]
-      .map(ta => ({ id: ta.closest('.entry').id, text: ta.value }));
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
-  } catch(e) {}
-}
-
-function loadEntries() {
-  try {
-    const entries = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    if (!entries.length) return;
-    document.getElementById('emptyMsg')?.remove();
-    entries.forEach(e => {
-      const num = parseInt(e.id.replace('e','')) || ++entryIndex;
-      if (num > entryIndex) entryIndex = num;
-      appendEntry(num, e.text, false);
-    });
-    updateCount();
-  } catch(e) {}
-}
-
-// ── Waveform ────────────────────────────────────────────────────────────────
+// ── Canvas ───────────────────────────────────────────────────────────────────
 const canvas = document.getElementById('waveCanvas');
 const ctx2d  = canvas.getContext('2d');
 
@@ -479,113 +262,138 @@ function drawWave() {
   canvas.height = H;
   const buf = new Uint8Array(analyser.frequencyBinCount);
   analyser.getByteTimeDomainData(buf);
-  // rastreia pico de volume para rejeitar gravações silenciosas
   let rmsSum = 0;
   for (let i = 0; i < buf.length; i++) { const v = (buf[i]/128)-1; rmsSum += v*v; }
   const rms = Math.sqrt(rmsSum / buf.length);
-  if (rms > peakRms) peakRms = rms;
-  ctx2d.clearRect(0, 0, W, H);
+  if (isRecording && rms > peakRms) peakRms = rms;
+  ctx2d.clearRect(0,0,W,H);
   ctx2d.strokeStyle = isRecording ? '#e05c5c' : '#3d4160';
   ctx2d.lineWidth = 1.5;
   ctx2d.beginPath();
   const sl = W / buf.length;
   for (let i = 0; i < buf.length; i++) {
     const x = i * sl;
-    const y = ((buf[i] / 128.0) - 1.0) * (H / 2) + H / 2;
-    i === 0 ? ctx2d.moveTo(x, y) : ctx2d.lineTo(x, y);
+    const y = ((buf[i]/128.0)-1.0)*(H/2)+H/2;
+    i===0 ? ctx2d.moveTo(x,y) : ctx2d.lineTo(x,y);
   }
   ctx2d.stroke();
 }
 
-// ── PTT ─────────────────────────────────────────────────────────────────────
-async function pttStart(e) {
-  e.preventDefault();
-  if (pressing) return;
+// ── Vibração ─────────────────────────────────────────────────────────────────
+function vib(p) { try { navigator.vibrate && navigator.vibrate(p); } catch(e){} }
+
+// ── Init microfone (chamado pelo botão — gesto do usuário) ───────────────────
+async function initMic() {
   const key = document.getElementById('apiKey').value.trim();
   if (!key || !key.startsWith('gsk_')) {
-    alert('Cole uma chave de API Groq válida (começa com gsk_).');
+    alert('Cole uma chave de API Groq válida (começa com gsk_) antes de ativar o microfone.');
     return;
   }
-  pressing = true;
-  vib(40);
-
-  // Obtém o stream — pode demorar um momento no primeiro uso
-  let stream;
+  document.getElementById('btnInit').textContent = 'Solicitando acesso...';
+  document.getElementById('btnInit').disabled = true;
   try {
-    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    activeStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioContext = new AudioContext();
+    analyser = audioContext.createAnalyser();
+    analyser.fftSize = 2048;
+    const src = audioContext.createMediaStreamSource(activeStream);
+    src.connect(analyser);
+    micReady = true;
+    // Mostra PTT, esconde init
+    document.getElementById('initSection').style.display = 'none';
+    document.getElementById('pttSection').style.display  = 'flex';
+    // Registra eventos PTT
+    attachPTT();
+    setUI('ready');
+    drawWave();
   } catch(err) {
-    pressing = false;
-    setUI('idle');
-    alert('Sem acesso ao microfone:\n' + err.message);
-    return;
+    document.getElementById('btnInit').textContent = '🎙️ Ativar microfone';
+    document.getElementById('btnInit').disabled = false;
+    alert('Não foi possível acessar o microfone:\n' + err.message);
+  }
+}
+
+// ── Eventos PTT — registrados após init bem-sucedido ─────────────────────────
+function attachPTT() {
+  const btn = document.getElementById('pttBtn');
+  btn.disabled = false;
+
+  // Mouse (desktop)
+  btn.addEventListener('mousedown',  onPressStart, { passive: false });
+  btn.addEventListener('mouseup',    onPressEnd,   { passive: false });
+  btn.addEventListener('mouseleave', onPressEnd,   { passive: false });
+
+  // Touch (mobile) — passive:false necessário para preventDefault no iOS
+  btn.addEventListener('touchstart',  onPressStart, { passive: false });
+  btn.addEventListener('touchend',    onPressEnd,   { passive: false });
+  btn.addEventListener('touchcancel', onPressEnd,   { passive: false });
+}
+
+function onPressStart(e) {
+  e.preventDefault();
+  if (pressing || !micReady) return;
+  pressing    = true;
+  isRecording = true;
+  peakRms     = 0;
+  chunks      = [];
+
+  // Recria o MediaRecorder a cada gravação (mais estável no WebKit)
+  try {
+    const opts = getBestMimeType();
+    mediaRecorder = opts
+      ? new MediaRecorder(activeStream, { mimeType: opts })
+      : new MediaRecorder(activeStream);
+  } catch(e) {
+    mediaRecorder = new MediaRecorder(activeStream);
   }
 
-  // Race condition: botão solto antes do getUserMedia terminar → descarta
-  if (!pressing) {
-    stream.getTracks().forEach(t => t.stop());
-    setUI('idle');
-    return;
-  }
-
-  activeStream = stream;
-  audioContext = new AudioContext();
-  analyser = audioContext.createAnalyser();
-  analyser.fftSize = 2048;
-  sourceNode = audioContext.createMediaStreamSource(activeStream);
-  sourceNode.connect(analyser);
-
-  chunks = [];
-  peakRms = 0;
-  mediaRecorder = new MediaRecorder(activeStream, getRecorderOptions());
-  mediaRecorder.ondataavailable = ev => { if (ev.data.size > 0) chunks.push(ev.data); };
+  mediaRecorder.ondataavailable = ev => { if (ev.data && ev.data.size > 0) chunks.push(ev.data); };
   mediaRecorder.onstop = handleStop;
   mediaRecorder.start(100);
 
-  isRecording = true;
+  vib(40);
   setUI('recording');
-  drawWave();
 }
 
-function pttEnd(e) {
+function onPressEnd(e) {
+  e.preventDefault();
   if (!pressing) return;
-  pressing = false;
-  // Se o await ainda não terminou, o check dentro do pttStart vai descartar o stream
-  if (!isRecording) return;
+  pressing    = false;
   isRecording = false;
-  if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
-  if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
-  setUI('processing');
-  ctx2d.clearRect(0, 0, canvas.width, canvas.height);
-}
 
-function getRecorderOptions() {
-  const types = ['audio/webm;codecs=opus','audio/webm','audio/ogg'];
-  for (const t of types) {
-    if (MediaRecorder.isTypeSupported(t)) return { mimeType: t };
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.stop();
+    setUI('processing');
+  } else {
+    setUI('ready');
   }
-  return {};
 }
 
-async function handleStop() {
-  // Cleanup audio
-  if (activeStream) { activeStream.getTracks().forEach(t => t.stop()); activeStream = null; }
-  if (audioContext) { audioContext.close(); audioContext = null; }
-  analyser = null; sourceNode = null;
+function getBestMimeType() {
+  const types = ['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/ogg','audio/mp4'];
+  return types.find(t => MediaRecorder.isTypeSupported(t)) || null;
+}
 
-  if (chunks.length === 0) { setUI('idle'); return; }
-  const blob = new Blob(chunks, { type: chunks[0]?.type || 'audio/webm' });
-  const capturedPeak = peakRms;
-  chunks = [];
+// ── Processa chunk após soltar ────────────────────────────────────────────────
+async function handleStop() {
+  if (chunks.length === 0) { setUI('ready'); return; }
+
+  const mimeType = mediaRecorder.mimeType || 'audio/webm';
+  const blob = new Blob(chunks, { type: mimeType });
+  const peak = peakRms;
+  chunks  = [];
   peakRms = 0;
 
-  // descarta se silêncio (sem voz detectada) ou blob muito pequeno
-  if (blob.size < 3000 || capturedPeak < 0.015) { setUI('idle'); return; }
+  // Descarta se silêncio ou blob muito pequeno
+  if (blob.size < 3000 || peak < MIN_PEAK_RMS) { setUI('ready'); return; }
 
   const idx = ++entryIndex;
   addProcessingEntry(idx);
 
   const fd = new FormData();
-  fd.append('file', blob, 'audio.webm');
+  // Extensão adequada ao mime
+  const ext = mimeType.includes('ogg') ? 'ogg' : mimeType.includes('mp4') ? 'mp4' : 'webm';
+  fd.append('file', blob, 'audio.' + ext);
   fd.append('model', 'whisper-large-v3');
   fd.append('language', 'pt');
   fd.append('response_format', 'json');
@@ -602,7 +410,7 @@ async function handleStop() {
     const text = (data.text || '').trim();
     if (text.length > 2 && !isHallucination(text)) {
       updateEntry(idx, text);
-      vib([30, 40, 60]); // padrão distinto ao receber transcrição
+      vib([30, 40, 60]);
     } else {
       removeEntry(idx);
     }
@@ -610,44 +418,40 @@ async function handleStop() {
     updateEntry(idx, '[erro: ' + err.message + ']');
   }
 
-  setUI('idle');
+  setUI('ready');
 }
 
 function isHallucination(t) {
-  if (t.length < 3) return true;
+  if (!t || t.length < 3) return true;
   return HALLUCINATIONS.some(re => re.test(t.trim()));
 }
 
-// ── UI state ────────────────────────────────────────────────────────────────
+// ── UI ────────────────────────────────────────────────────────────────────────
 function setUI(state) {
   const btn   = document.getElementById('pttBtn');
   const icon  = document.getElementById('pttIcon');
   const label = document.getElementById('pttLabel');
   const pill  = document.getElementById('statusPill');
-
   btn.className = 'ptt-btn';
   pill.className = 'status-pill';
-
   if (state === 'recording') {
-    btn.classList.add('pressing');
-    icon.textContent  = '🔴';
-    label.textContent = 'gravando';
-    pill.classList.add('recording');
-    pill.textContent  = 'gravando...';
+    btn.classList.add('recording');
+    icon.textContent = '🔴'; label.textContent = 'gravando';
+    pill.classList.add('recording'); pill.textContent = 'gravando...';
   } else if (state === 'processing') {
     btn.classList.add('processing');
-    icon.textContent  = '⏳';
-    label.textContent = 'aguarde';
-    pill.classList.add('processing');
-    pill.textContent  = 'transcrevendo...';
+    icon.textContent = '⏳'; label.textContent = 'aguarde';
+    pill.classList.add('processing'); pill.textContent = 'transcrevendo...';
+  } else if (state === 'ready') {
+    icon.textContent = '🎙️'; label.textContent = 'Segurar';
+    pill.classList.add('ready'); pill.textContent = 'pronto';
   } else {
-    icon.textContent  = '🎙️';
-    label.textContent = 'Segurar';
-    pill.textContent  = 'aguardando';
+    icon.textContent = '🎙️'; label.textContent = 'aguarde';
+    pill.textContent = 'inicializando...';
   }
 }
 
-// ── Entry DOM ────────────────────────────────────────────────────────────────
+// ── Entradas DOM ──────────────────────────────────────────────────────────────
 function addProcessingEntry(idx) {
   document.getElementById('emptyMsg')?.remove();
   const area = document.getElementById('transcriptArea');
@@ -660,57 +464,95 @@ function addProcessingEntry(idx) {
   updateCount();
 }
 
-function appendEntry(idx, text, animate) {
-  const area = document.getElementById('transcriptArea');
-  const div  = document.createElement('div');
-  div.className = 'entry' + (animate === false ? ' no-anim' : '');
-  div.id = 'e' + idx;
-  div.innerHTML = `
-    <span class="entry-num">${idx}</span>
-    <textarea class="entry-text" rows="2" spellcheck="false">${text}</textarea>
-    <button class="entry-del" onclick="removeEntry(${idx})" title="remover">✕</button>`;
-  const ta = div.querySelector('textarea');
-  ta.addEventListener('input', () => {
-    ta.style.height = 'auto';
-    ta.style.height = ta.scrollHeight + 'px';
-    saveEntries();
-  });
-  area.appendChild(div);
-  setTimeout(() => { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; }, 0);
-}
-
 function updateEntry(idx, text) {
   const div = document.getElementById('e' + idx);
   if (!div) return;
   div.className = 'entry';
   div.innerHTML = `
     <span class="entry-num">${idx}</span>
-    <textarea class="entry-text" rows="2" spellcheck="false">${text}</textarea>
+    <textarea class="entry-text" rows="2" spellcheck="false">${escHtml(text)}</textarea>
     <button class="entry-del" onclick="removeEntry(${idx})" title="remover">✕</button>`;
-  const ta = div.querySelector('textarea');
-  ta.addEventListener('input', () => {
-    ta.style.height = 'auto';
-    ta.style.height = ta.scrollHeight + 'px';
-    saveEntries();
-  });
-  setTimeout(() => { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; }, 0);
+  autoResize(div.querySelector('textarea'));
   document.getElementById('transcriptArea').scrollTop = 99999;
   updateCount();
   saveEntries();
 }
 
+function appendEntry(idx, text) {
+  const area = document.getElementById('transcriptArea');
+  const div  = document.createElement('div');
+  div.className = 'entry';
+  div.id = 'e' + idx;
+  div.innerHTML = `
+    <span class="entry-num">${idx}</span>
+    <textarea class="entry-text" rows="2" spellcheck="false">${escHtml(text)}</textarea>
+    <button class="entry-del" onclick="removeEntry(${idx})" title="remover">✕</button>`;
+  const ta = div.querySelector('textarea');
+  ta.addEventListener('input', () => { autoResize(ta); saveEntries(); });
+  area.appendChild(div);
+  setTimeout(() => autoResize(ta), 0);
+}
+
+function autoResize(ta) {
+  ta.style.height = 'auto';
+  ta.style.height = ta.scrollHeight + 'px';
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
 function removeEntry(idx) {
   document.getElementById('e' + idx)?.remove();
-  updateCount();
-  saveEntries();
+  updateCount(); saveEntries();
 }
 
 function updateCount() {
   const n = document.querySelectorAll('.entry:not(.processing)').length;
-  document.getElementById('entryCount').textContent = n + (n === 1 ? ' entrada' : ' entradas');
+  document.getElementById('entryCount').textContent = n + (n===1?' entrada':' entradas');
 }
 
-// ── Export ───────────────────────────────────────────────────────────────────
+// ── Persistência ──────────────────────────────────────────────────────────────
+function saveSettings() {
+  try {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({
+      apiKey:  document.getElementById('apiKey').value,
+      context: document.getElementById('contextInput').value,
+    }));
+  } catch(e) {}
+}
+
+function loadSettings() {
+  try {
+    const s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+    if (s.apiKey)  document.getElementById('apiKey').value  = s.apiKey;
+    if (s.context) document.getElementById('contextInput').value = s.context;
+  } catch(e) {}
+}
+
+function saveEntries() {
+  try {
+    const entries = [...document.querySelectorAll('.entry:not(.processing) textarea')]
+      .map(ta => ({ id: ta.closest('.entry').id, text: ta.value }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+  } catch(e) {}
+}
+
+function loadEntries() {
+  try {
+    const entries = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    if (!entries.length) return;
+    document.getElementById('emptyMsg')?.remove();
+    entries.forEach(e => {
+      const num = parseInt(e.id.replace('e','')) || ++entryIndex;
+      if (num > entryIndex) entryIndex = num;
+      appendEntry(num, e.text);
+    });
+    updateCount();
+  } catch(e) {}
+}
+
+// ── Exportar ──────────────────────────────────────────────────────────────────
 function getAllText() {
   return [...document.querySelectorAll('.entry:not(.processing) textarea')]
     .map(t => t.value).filter(Boolean).join('\n\n');
@@ -730,10 +572,9 @@ function copyAll() {
 function downloadTxt() {
   const text = getAllText();
   if (!text) return;
-  const now = new Date();
-  const ts  = now.toISOString().slice(0,16).replace('T','_').replace(':','-');
-  const a   = document.createElement('a');
-  a.href    = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
+  const ts = new Date().toISOString().slice(0,16).replace('T','_').replace(':','-');
+  const a  = document.createElement('a');
+  a.href   = URL.createObjectURL(new Blob([text], { type:'text/plain' }));
   a.download = `laudo_${ts}.txt`;
   a.click();
 }
@@ -741,23 +582,22 @@ function downloadTxt() {
 function clearAll() {
   if (!confirm('Limpar todas as entradas? Esta ação não pode ser desfeita.')) return;
   document.getElementById('transcriptArea').innerHTML =
-    '<div class="empty-msg" id="emptyMsg">🎙️<br><br>Cole a chave Groq, pressione e segure o botão, fale.<br>O texto aparece ao soltar.</div>';
+    '<div class="empty-msg" id="emptyMsg">🎙️<br><br>Ative o microfone, pressione e segure o botão, fale.<br>O texto aparece ao soltar.</div>';
   entryIndex = 0;
   updateCount();
   try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
 }
 
-// ── Init ─────────────────────────────────────────────────────────────────────
-loadSettings();
-loadEntries();
-
 // ── PWA Service Worker ────────────────────────────────────────────────────────
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js')
-      .catch(err => console.warn('SW:', err));
+    navigator.serviceWorker.register('sw.js').catch(() => {});
   });
 }
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+loadSettings();
+loadEntries();
 </script>
 </body>
 </html>
