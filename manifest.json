@@ -1,0 +1,25 @@
+{
+  "name": "Transcrição Forense",
+  "short_name": "TransForense",
+  "description": "Transcrição de laudos necroscópicos com IA",
+  "start_url": "/transcricao-forense/",
+  "scope": "/transcricao-forense/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f1117",
+  "theme_color": "#0f1117",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
